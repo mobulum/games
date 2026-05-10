@@ -1,0 +1,80 @@
+name: Deploy Game
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "projects/**"
+      - ".github/workflows/deploy-game.yml"
+
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "Project slug to deploy (e.g. defend-yourself)"
+        required: true
+
+concurrency:
+  group: "deploy-game-${{ github.event.inputs.project || 'auto' }}"
+  cancel-in-progress: true
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.detect.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed projects
+        id: detect
+        run: |
+          if [[ -n "${{ github.event.inputs.project }}" ]]; then
+            echo "projects=[\"${{ github.event.inputs.project }}\"]" >> "$GITHUB_OUTPUT"
+          else
+            PROJECTS=$(git diff --name-only HEAD~1 HEAD -- projects/ \
+              | cut -d'/' -f2 | sort -u | grep -v '^base$' \
+              | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "projects=$PROJECTS" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.projects != '[]' && needs.detect-changes.outputs.projects != ''
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install and build
+        working-directory: projects/${{ matrix.project }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy to target repo
+        env:
+          GH_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          SLUG="${{ matrix.project }}"
+          ORG="mobulum-games"
+          SUBDOMAIN="$SLUG.games.mobulum.com"
+          DIST="projects/$SLUG/dist"
+
+          cd "$DIST"
+          echo "$SUBDOMAIN" > CNAME
+
+          git init -b main
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Deploy $SLUG - $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/$ORG/$SLUG.git"
+          git push -u origin main --force

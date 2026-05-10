@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mobulum Games</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        background: #0a0a1a;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      header {
+        padding: 3rem 1rem 2rem;
+        text-align: center;
+      }
+      header h1 {
+        font-size: 2.5rem;
+        color: #fff;
+        letter-spacing: 0.05em;
+      }
+      header p {
+        margin-top: 0.5rem;
+        color: #888;
+        font-size: 1.1rem;
+      }
+      .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        padding: 2rem;
+        max-width: 1200px;
+        width: 100%;
+      }
+      .game-card {
+        background: #16162a;
+        border: 1px solid #2a2a4a;
+        border-radius: 12px;
+        padding: 1.5rem;
+        transition: transform 0.2s, border-color 0.2s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+      .game-card:hover {
+        transform: translateY(-4px);
+        border-color: #4a4a8a;
+      }
+      .game-card h2 {
+        font-size: 1.3rem;
+        color: #fff;
+        margin-bottom: 0.5rem;
+      }
+      .game-card .url {
+        font-size: 0.85rem;
+        color: #6a6aaa;
+        font-family: monospace;
+      }
+      .empty {
+        color: #555;
+        text-align: center;
+        padding: 4rem;
+        font-size: 1.2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Mobulum Games</h1>
+      <p>Browser games collection</p>
+    </header>
+    <div class="games-grid" id="games"></div>
+    <script>
+      // AUTO-GENERATED: Do not edit manually. Updated by scripts/create-project.sh
+      const games = [
+        // GAMES_LIST_START
+        // GAMES_LIST_END
+      ];
+      const grid = document.getElementById("games");
+      if (games.length === 0) {
+        grid.innerHTML = '<div class="empty">No games yet. Create one with <code>scripts/create-project.sh</code></div>';
+      } else {
+        games.forEach(g => {
+          const a = document.createElement("a");
+          a.className = "game-card";
+          a.href = g.url;
+          a.target = "_blank";
+          a.innerHTML = `<h2>${g.name}</h2><div class="url">${g.url}</div>`;
+          grid.appendChild(a);
+        });
+      }
+    </script>
+  </body>
+</html>
