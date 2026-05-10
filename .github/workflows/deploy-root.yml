@@ -2,7 +2,7 @@ name: Deploy Root Page
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - "index.html"
       - "CNAME"

@@ -90,11 +90,11 @@ echo "$SUBDOMAIN" > "$TEMP_DIR/CNAME"
 
 (
   cd "$TEMP_DIR"
-  git init -b main
+  git init -b master
   git add -A
   git commit -m "Initial deploy: $DISPLAY_NAME"
   git remote add origin "https://github.com/$ORG/$SLUG.git"
-  git push -u origin main --force
+  git push -u origin master --force
 )
 rm -rf "$TEMP_DIR"
 
@@ -105,6 +105,6 @@ echo "    Repo:   https://github.com/$ORG/$SLUG"
 echo "    URL:    https://$SUBDOMAIN"
 echo ""
 echo "Next steps:"
-echo "  1. Enable GitHub Pages on the repo (Settings > Pages > Source: main branch)"
+echo "  1. Enable GitHub Pages on the repo (Settings > Pages > Source: master branch)"
 echo "  2. Configure DNS: CNAME $SUBDOMAIN -> $ORG.github.io"
 echo "  3. Start developing: cd $PROJECT_DIR && npm run dev"

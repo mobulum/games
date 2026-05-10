@@ -56,12 +56,12 @@ npm run build   # Production build to dist/
 
 ## Deploy
 
-- **Root page**: auto-deploys on push to `main` when `index.html` changes
-- **Games**: auto-deploys on push to `main` when files in `projects/<slug>/` change
+- **Root page**: auto-deploys on push to `master` when `index.html` changes
+- **Games**: auto-deploys on push to `master` when files in `projects/<slug>/` change
 - **Manual deploy**: trigger `Deploy Game` workflow with project slug
 
 ### Required setup
 
 1. Create a GitHub PAT with `repo` scope and add it as `DEPLOY_TOKEN` secret in this repo
-2. Enable GitHub Pages on each target repo (Settings > Pages > main branch)
+2. Enable GitHub Pages on each target repo (Settings > Pages > master branch)
 3. DNS: `CNAME *.games.mobulum.com -> mobulum-games.github.io`
