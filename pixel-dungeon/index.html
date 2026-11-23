@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Dungeon Deckbuilder - Roguelike Karciany</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="retro-container">
+        <!-- Pasek górny (Status/Statystyki) -->
+        <header id="top-bar">
+            <div class="stat-pill"><span class="icon">🏰</span> Poziom: <span id="floor-num">1</span></div>
+            <div class="stat-pill"><span class="icon">🪙</span> Złoto: <span id="gold-val">25</span></div>
+            <div class="stat-pill"><span class="icon">📜</span> Talia: <span id="deck-count">10</span></div>
+            <div class="stat-pill"><span class="icon">💀</span> Pokonani: <span id="kills-val">0</span></div>
+            <button id="select-hero-btn" class="nes-btn-sm hero-select-btn" title="Zmień lub wybierz postać gracza">🧙 WYBIERZ POSTAĆ</button>
+            <button id="open-pack-shop-btn" class="nes-btn-sm pack-btn" title="Otwórz Paczki z Kartami Postaci">📦 PACZKI KART</button>
+            <button id="sound-btn" class="nes-btn-sm" title="Dźwięk ON/OFF">🔊 SFX</button>
+        </header>
+
+        <!-- Ekran Bitwy / Główna Scena Pixel Art -->
+        <main id="battlefield">
+            <!-- Sceneria tła -->
+            <div class="dungeon-decorations">
+                <div class="torch left-torch"><div class="flame"></div></div>
+                <div class="torch right-torch"><div class="flame"></div></div>
+                <div class="brick-pattern"></div>
+            </div>
+
+            <!-- Strefa Walki: Gracz vs Przeciwnik -->
+            <div class="combatants-stage">
+                <!-- Postać Gracza -->
+                <div class="combatant-wrap" id="player-wrap">
+                    <div class="stats-badge">
+                        <div class="name-tag" id="player-hero-name">Bohater: Sir Roland (Rycerz)</div>
+                        <div class="bar-container hp-container">
+                            <div class="bar-fill" id="player-hp-bar" style="width: 100%;"></div>
+                            <span class="bar-text" id="player-hp-text">50 / 50</span>
+                        </div>
+                        <div class="shields-row">
+                            <span class="shield-badge" id="player-shield-badge">🛡️ Tarcza: <span id="player-shield-val">0</span></span>
+                            <span class="status-badge" id="player-status-badge"></span>
+                        </div>
+                    </div>
+                    <div class="canvas-character-box">
+                        <canvas id="player-canvas" width="64" height="64"></canvas>
+                        <div class="floating-dmg-anchor" id="player-dmg-anchor"></div>
+                    </div>
+                    <div class="energy-display">
+                        <span class="energy-title">ENERGIA</span>
+                        <div class="energy-crystals" id="energy-crystals"></div>
+                    </div>
+                </div>
+
+                <!-- Efekty potyczki w centrum -->
+                <div id="versus-effects">
+                    <div id="slash-fx" class="pixel-fx"></div>
+                    <div id="turn-announcer" class="turn-banner">TWOJA TURA</div>
+                </div>
+
+                <!-- Przeciwnik -->
+                <div class="combatant-wrap" id="enemy-wrap">
+                    <div class="stats-badge">
+                        <div class="name-tag" id="enemy-name">Goblin Rozbójnik</div>
+                        <div class="bar-container hp-container">
+                            <div class="bar-fill enemy-fill" id="enemy-hp-bar" style="width: 100%;"></div>
+                            <span class="bar-text" id="enemy-hp-text">30 / 30</span>
+                        </div>
+                        <div class="shields-row">
+                            <span class="shield-badge" id="enemy-shield-badge">🛡️ Tarcza: <span id="enemy-shield-val">0</span></span>
+                            <div class="intent-badge" id="enemy-intent-badge">
+                                Zamierza: <span id="enemy-intent-icon">🗡️</span> <span id="enemy-intent-val">6</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="canvas-character-box">
+                        <canvas id="enemy-canvas" width="64" height="64"></canvas>
+                        <div class="floating-dmg-anchor" id="enemy-dmg-anchor"></div>
+                    </div>
+                    <div class="enemy-traits" id="enemy-traits">
+                        <!-- Cechy przeciwnika / opisy -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Konsola dziennika zdarzeń (Dungeon Log) -->
+            <div id="combat-log-box">
+                <div class="log-title">DZIENNIK PRZYGODY</div>
+                <div id="log-messages"></div>
+            </div>
+        </main>
+
+        <!-- Dolna strefa: Ręka kart i akcje -->
+        <footer id="cards-dashboard">
+            <div class="deck-controls">
+                <div class="pile-box draw-pile" title="Stos Dobierania">
+                    <div class="pile-icon">🃏</div>
+                    <div class="pile-counter" id="draw-count">0</div>
+                    <span class="pile-label">Dobierz</span>
+                </div>
+
+                <div class="cards-hand" id="cards-hand">
+                    <!-- Karty generowane dynamicznie w JS -->
+                </div>
+
+                <div class="discard-and-actions">
+                    <div class="pile-box discard-pile" title="Stos Kart Odrzuconych">
+                        <div class="pile-icon">🗑️</div>
+                        <div class="pile-counter" id="discard-count">0</div>
+                        <span class="pile-label">Odrzucone</span>
+                    </div>
+                    <button id="end-turn-btn" class="pixel-btn primary-btn">
+                        ZAKOŃCZ TURĘ
+                        <span class="hotkey-tip">[SPACJA]</span>
+                    </button>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Modal Wyboru Karty po Zwycięstwie (Reward Modal) -->
+        <div id="reward-modal" class="pixel-modal hidden">
+            <div class="modal-card-frame">
+                <h2 class="modal-title">🏆 ZWYCIĘSTWO! 🏆</h2>
+                <p class="modal-sub">Wybierz 1 kartę, aby dodać do swojej talii, i odbierz złoto:</p>
+                <div class="reward-loot-info">
+                    <span>Zdobyto: <b id="loot-gold-text">+15 🪙</b></span>
+                </div>
+                <div class="reward-cards-container" id="reward-cards-container">
+                    <!-- 3 propozycje kart -->
+                </div>
+                <div class="modal-actions">
+                    <button id="skip-reward-btn" class="pixel-btn secondary-btn">Pomiń kartę (Tylko Złoto)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Sklepu / Obozowiska (Camp / Shop) -->
+        <div id="rest-modal" class="pixel-modal hidden">
+            <div class="modal-card-frame">
+                <h2 class="modal-title">🔥 OGNISKO & HANDLARZ 🔥</h2>
+                <p class="modal-sub">Odpocznij przy ognisku lub odwiedź tajemniczego wędrowca.</p>
+                <div class="camp-options">
+                    <div class="camp-card" id="camp-heal-btn">
+                        <div class="camp-icon">❤️‍🩹</div>
+                        <h3>Odpocznij</h3>
+                        <p>Odzyskaj 30% maksymalnego zdrowia.</p>
+                        <button class="pixel-btn">Wypocznij</button>
+                    </div>
+                    <div class="camp-card" id="camp-shop-btn">
+                        <div class="camp-icon">🧙‍♂️</div>
+                        <h3>Sklepik</h3>
+                        <p>Kup potężne relikty lub rzadkie czary.</p>
+                        <button class="pixel-btn">Otwórz Sklep</button>
+                    </div>
+                </div>
+                <div id="shop-items-area" class="hidden">
+                    <div class="shop-grid" id="shop-cards-list"></div>
+                    <button id="leave-shop-btn" class="pixel-btn primary-btn mt-2">Kontynuuj podróż</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Paczek Kart Postaci (Booster Packs) -->
+        <div id="packs-modal" class="pixel-modal hidden">
+            <div class="modal-card-frame pack-modal-frame">
+                <h2 class="modal-title">📦 SKLEP Z PACZKAMI KART BOHATERÓW 📦</h2>
+                <p class="modal-sub">Otwieraj paczki, aby zdobywać potężne karty legendarnych postaci do swojej talii!</p>
+                <div class="packs-shelf">
+                    <!-- Paczka Brązowa -->
+                    <div class="pack-item" data-pack="bronze">
+                        <div class="pack-wrapper pack-bronze">
+                            <div class="pack-badge bronze-badge">BRĄZOWA</div>
+                            <div class="pack-art">🥉</div>
+                            <div class="pack-name">Brązowa Paczka</div>
+                            <div class="pack-desc">3 karty. Szansa na karty postaci: Rycerz i Łotrzyk!</div>
+                            <button class="pixel-btn pack-buy-btn btn-bronze" data-pack="bronze">KUP (20 🪙)</button>
+                        </div>
+                    </div>
+                    <!-- Paczka Srebrna -->
+                    <div class="pack-item" data-pack="silver">
+                        <div class="pack-wrapper pack-silver">
+                            <div class="pack-badge silver-badge">SREBRNA</div>
+                            <div class="pack-art">🥈</div>
+                            <div class="pack-name">Srebrna Paczka</div>
+                            <div class="pack-desc">3 karty. Większa szansa na postacie: Czarodziejka i Nekromanta!</div>
+                            <button class="pixel-btn pack-buy-btn btn-silver" data-pack="silver">KUP (40 🪙)</button>
+                        </div>
+                    </div>
+                    <!-- Paczka Złota -->
+                    <div class="pack-item" data-pack="gold">
+                        <div class="pack-wrapper pack-gold">
+                            <div class="pack-badge gold-badge">ZŁOTA</div>
+                            <div class="pack-art">🥇</div>
+                            <div class="pack-name">Złota Paczka</div>
+                            <div class="pack-desc">3 karty. Najwyższa szansa na legendarne postacie: Paladyn i Berserker!</div>
+                            <button class="pixel-btn pack-buy-btn btn-gold" data-pack="gold">KUP (65 🪙)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ekran rozpakowywania paczki (Animacja otwarcia) -->
+                <div id="pack-opening-stage" class="hidden">
+                    <div class="opening-pack-anim" id="opening-pack-anim">
+                        <div class="shaking-pack-icon">📦</div>
+                        <div class="opening-burst-fx"></div>
+                    </div>
+                    <div class="pulled-cards-container" id="pulled-cards-container">
+                        <!-- Odkryte karty -->
+                    </div>
+                    <button id="collect-pulled-btn" class="pixel-btn primary-btn mt-2 hidden">DODAJ WSZYSTKIE DO TALII</button>
+                </div>
+
+                <div class="modal-actions mt-2">
+                    <button id="close-packs-btn" class="pixel-btn secondary-btn">Wróć do gry</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Wyboru Postaci Bohatera -->
+        <div id="hero-select-modal" class="pixel-modal hidden">
+            <div class="modal-card-frame hero-modal-frame">
+                <h2 class="modal-title">⚔️ WYBIERZ SWOJĄ POSTAĆ ⚔️</h2>
+                <p class="modal-sub">Każda postać posiada unikalny wygląd pixel-art, własne statystyki bazowe, unikalną zdolność pasywną oraz dedykowaną talię startową!</p>
+                <div class="heroes-grid" id="heroes-grid">
+                    <!-- Dynamicznie generowane kafelki 6 klas postaci -->
+                </div>
+                <div class="modal-actions mt-2">
+                    <button id="close-hero-select-btn" class="pixel-btn secondary-btn">Zamknij</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ekran Końca Gry (Game Over / Wygrana) -->
+        <div id="game-over-modal" class="pixel-modal hidden">
+            <div class="modal-card-frame">
+                <h2 class="modal-title" id="game-over-title">💀 POLEGŁEŚ W LOCHACH 💀</h2>
+                <div class="game-over-stats" id="game-over-stats">
+                    <!-- Podsumowanie -->
+                </div>
+                <button id="restart-game-btn" class="pixel-btn primary-btn">ZAGRAJ PONOWNIE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dźwięki syntetyczne Web Audio API wbudowane w kodzie JS -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Królestwo Cieni - Otwarta Mapa Świata & Wioska 3D</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Import Three.js via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <!-- 3D Game Canvas Holder -->
+    <div id="game-container"></div>
+
+    <!-- HUD Overlay Średniowieczny -->
+    <div id="hud" class="hidden">
+        <div class="hud-top-left">
+            <div class="stat-bar-container">
+                <span class="stat-label">❤️ ŻYCIE RYCERZA</span>
+                <div class="stat-bar"><div id="health-bar" style="width: 100%;"></div></div>
+            </div>
+            <div class="stat-bar-container">
+                <span class="stat-label">⚡ STAMINA</span>
+                <div class="stat-bar stamina"><div id="stamina-bar" style="width: 100%;"></div></div>
+            </div>
+            <div class="gold-potion-container">
+                <div class="hud-badge gold-badge">🪙 <span id="gold-count">0</span> Złota</div>
+                <div class="hud-badge potion-badge">🧪 <span id="potion-count">1</span> Mikstury (<kbd>Q</kbd>)</div>
+            </div>
+        </div>
+
+        <div class="hud-top-center">
+            <div id="mission-tracker">
+                <div class="dungeon-title" id="dungeon-name">🗺️ MAPA ŚWIATA: KRÓLESTWO ELDORII</div>
+                <div class="mission-objective" id="dungeon-objective">● Zwiedzaj świat, kupuj ulepszenia w wiosce i zdobywaj dungeony</div>
+                <div class="inventory-keys">
+                    <span class="key-slot" id="key-ruby" title="Rubinowy Klucz">💎 Rubin</span>
+                    <span class="key-slot" id="key-sapphire" title="Szafirowy Klucz">🔷 Szafir</span>
+                    <span class="key-slot" id="key-emerald" title="Szmaragdowy Klucz">🟢 Szmaragd</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hud-top-right">
+            <!-- Minimap / Radar Świata -->
+            <div id="minimap-container">
+                <canvas id="minimap" width="130" height="130"></canvas>
+            </div>
+        </div>
+
+        <!-- Celownik i podpowiedzi ataku/interakcji -->
+        <div id="crosshair">⚔️</div>
+        <div id="interaction-prompt" class="hidden">Naciśnij <kbd>E</kbd> aby wejść w interakcję</div>
+        <div id="attack-hint">LPM / <kbd>F</kbd> - Atak | <kbd>Q</kbd> - Użyj Mikstury</div>
+
+        <!-- Baner powiadomień -->
+        <div id="notification-banner"></div>
+    </div>
+
+    <!-- Sklep Kupca (Shop Modal) -->
+    <div id="shop-modal" class="overlay-screen hidden">
+        <div class="modal-card medieval shop-card">
+            <h2>🏬 SKLEP HANDLARZA ELDORII</h2>
+            <p class="subtitle">Witaj rycerzu! Zaoferuję Ci najlepsze uzbrojenie w królestwie.</p>
+            <div class="shop-gold-display">Twoje Złoto: 🪙 <span id="shop-user-gold">0</span></div>
+
+            <div class="shop-items-grid">
+                <div class="shop-item">
+                    <div class="item-icon">🧪</div>
+                    <div class="item-info">
+                        <h4>Mikstura Lecznicza</h4>
+                        <p>Odnawia +50 HP w walce (<kbd>Q</kbd>)</p>
+                        <span class="price">🪙 25 Złota</span>
+                    </div>
+                    <button class="btn-buy" id="buy-potion-btn">KUP</button>
+                </div>
+
+                <div class="shop-item">
+                    <div class="item-icon">⚡</div>
+                    <div class="item-info">
+                        <h4>Eliksir Staminy</h4>
+                        <p>Pełne odnowienie energii rycerza</p>
+                        <span class="price">🪙 20 Złota</span>
+                    </div>
+                    <button class="btn-buy" id="buy-stamina-btn">KUP</button>
+                </div>
+
+                <div class="shop-item">
+                    <div class="item-icon">⚔️</div>
+                    <div class="item-info">
+                        <h4>Stalowy Miecz Gryfa</h4>
+                        <p>Zwiększa obrażenia miecza z 25 do 50 HP</p>
+                        <span class="price">🪙 100 Złota</span>
+                    </div>
+                    <button class="btn-buy" id="buy-sword-btn">KUP</button>
+                </div>
+
+                <div class="shop-item">
+                    <div class="item-icon">🛡️</div>
+                    <div class="item-info">
+                        <h4>Zbroja Płytowa Gryfa</h4>
+                        <p>Zwiększa max zdrowie ze 100 do 160 HP</p>
+                        <span class="price">🪙 150 Złota</span>
+                    </div>
+                    <button class="btn-buy" id="buy-armor-btn">KUP</button>
+                </div>
+
+                <div class="shop-item">
+                    <div class="item-icon">👟</div>
+                    <div class="item-info">
+                        <h4>Buty Szybkości</h4>
+                        <p>Zwiększają prędkość poruszania się o 30%</p>
+                        <span class="price">🪙 80 Złota</span>
+                    </div>
+                    <button class="btn-buy" id="buy-boots-btn">KUP</button>
+                </div>
+            </div>
+
+            <button class="btn-medieval close-btn" id="close-shop-btn">ZAMKNIJ SKLEP</button>
+        </div>
+    </div>
+
+    <!-- Start Overlay (Ekran Startowy) -->
+    <div id="start-screen" class="overlay-screen">
+        <div class="modal-card medieval">
+            <h1>🗡️ KRÓLESTWO CIENI: OTWARTY ŚWIAT 🛡️</h1>
+            <p class="subtitle">Wkrocz na Mapę Świata Eldorii, zwiedzaj Wioskę, kupuj uzbrojenie i podbijaj Dungeony!</p>
+            
+            <div class="instructions-box medieval-box">
+                <h3>📜 PRZEWODNIK PO ŚWIECIE:</h3>
+                <ul>
+                    <li>1. **Wioska Eldoria**: Odwiedź Handlarza przy straganie, aby ulepszać miecz i kupować mikstury.</li>
+                    <li>2. **Otwarta Mapa Świata**: Wędruj po trójwymiarowym świecie i wchodź do bram 4 lochów.</li>
+                    <li>3. **Złoto & Walka**: Pokonuj stwory mieczem, zbieraj złote monety `🪙` i używaj mikstur pod klawiszem <kbd>Q</kbd>.</li>
+                </ul>
+
+                <h3>⚔️ STEROWANIE:</h3>
+                <div class="controls-grid">
+                    <div><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> / <kbd>Strzałki</kbd> - Chodzenie po Mapie Świata & Lochach</div>
+                    <div><kbd>LPM</kbd> / <kbd>F</kbd> - Atak Mieczem | <kbd>Q</kbd> - Wypij Miksturę</div>
+                    <div><kbd>E</kbd> - Otwórz Sklep / Wejdź do Bramy Lochu / Zbieraj Przedmioty</div>
+                </div>
+            </div>
+
+            <button id="start-btn" class="btn-medieval">WKRACZAJ NA MAPĘ ŚWIATA</button>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="overlay-screen hidden">
+        <div class="modal-card medieval danger">
+            <h1>💀 RYCERZ POLEGŁ</h1>
+            <p id="gameover-reason">Mroczne stwory pokonały Twoją zbroję.</p>
+            <button id="restart-btn" class="btn-medieval">POWSTAŃ PONOWNIE</button>
+        </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victory-screen" class="overlay-screen hidden">
+        <div class="modal-card medieval success">
+            <h1>🏆 CHWAŁA BOHATEROWI!</h1>
+            <p>Użyłeś 3 Relikwii, pokonałeś Strażników i ocaliłeś Królestwo Eldorii!</p>
+            <div class="stats-summary">
+                <p>Czas wyprawy: <span id="final-time">00:00</span></p>
+                <p>Pozostałe zdrowie: <span id="final-health">100%</span></p>
+            </div>
+            <button id="victory-restart-btn" class="btn-medieval">ZAGRAJ PONOWNIE</button>
+        </div>
+    </div>
+
+    <!-- Game Script -->
+    <script src="script.js"></script>
+</body>
+</html>

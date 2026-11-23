@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ewolucja Cywilizacji - Wojna, Armie & Drzewko Technologiczne</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Panel boczny: Surowce, Naród, Armia, Zbieranie, Automatyzacja -->
+    <aside class="sidebar">
+      <header class="game-header">
+        <div class="logo">
+          <span class="icon">🌌</span>
+          <div>
+            <h1>Kroniki Rozwoju</h1>
+            <p class="era-tag" id="currentEra">Epoka Kamienia</p>
+          </div>
+        </div>
+
+        <!-- Aktywny Kraj / Przycisk Wyboru -->
+        <div class="country-badge" id="countryBadge" title="Kliknij, aby wybrać lub zmienić kraj">
+          <div class="country-badge-flag" id="badgeFlag">🇵🇱</div>
+          <div class="country-badge-info">
+            <span class="country-badge-title" id="badgeName">Polska</span>
+            <small class="country-badge-perk" id="badgePerk">+25% Nauki</small>
+          </div>
+          <button class="btn-change-country" id="btnOpenCountries">Zmień 🌍</button>
+        </div>
+      </header>
+
+      <!-- Panel Zarządzania Armią i Wojną -->
+      <section class="army-status-box">
+        <div class="army-header-row">
+          <span class="army-title">🪖 Twoja Armia Polowa</span>
+          <span class="army-location-tag" id="armyLocationTag">Prowincja: Polska</span>
+        </div>
+        <div class="army-counter-row">
+          <div class="army-size-stat">
+            <span class="stat-lbl">Liczebność Wojsk</span>
+            <span class="stat-num" id="armySoldiersCount">1 000</span>
+          </div>
+          <div class="army-rank-stat">
+            <span class="stat-lbl">Typ Formacji</span>
+            <span class="stat-rank" id="armyRankName">Wojownicy Plemion</span>
+          </div>
+        </div>
+
+        <div class="recruit-actions">
+          <button class="btn-recruit" id="btnRecruit1000" title="Koszt: 100 Materiałów">
+            +1 000 Żołnierzy
+            <small id="costRecruit1000">100 ⚙️</small>
+          </button>
+          <button class="btn-recruit" id="btnRecruit2000" title="Koszt: 180 Materiałów">
+            +2 000 Żołnierzy
+            <small id="costRecruit2000">180 ⚙️</small>
+          </button>
+          <button class="btn-recruit gold" id="btnRecruit5000" title="Koszt: 400 Materiałów">
+            +5 000 Elity
+            <small id="costRecruit5000">400 ⚙️</small>
+          </button>
+        </div>
+      </section>
+
+      <!-- Statystyki Państwa na Mapie -->
+      <section class="nation-stats-box">
+        <div class="stat-row">
+          <span>Kontrolowane Prowincje:</span>
+          <strong id="ownedProvincesCount">1</strong>
+        </div>
+        <div class="stat-row">
+          <span>Siła Ognia / Bonus Technologiczny:</span>
+          <strong id="militaryPowerVal" style="color: #ef4444;">10 ⚔️</strong>
+        </div>
+      </section>
+
+      <!-- Sekcja Zasobów -->
+      <section class="resources-panel">
+        <div class="res-card" id="resCardKnowledge">
+          <div class="res-icon">💡</div>
+          <div class="res-info">
+            <span class="res-label">Punkty Nauki (RP)</span>
+            <span class="res-value" id="rpVal">0</span>
+            <span class="res-rate" id="rpRate">+0.0 /s</span>
+          </div>
+        </div>
+
+        <div class="res-card" id="resCardProduction">
+          <div class="res-icon">⚙️</div>
+          <div class="res-info">
+            <span class="res-label">Materiały / Produkcja</span>
+            <span class="res-value" id="prodVal">0</span>
+            <span class="res-rate" id="prodRate">+0.0 /s</span>
+          </div>
+        </div>
+
+        <div class="res-card" id="resCardEnergy">
+          <div class="res-icon">⚡</div>
+          <div class="res-info">
+            <span class="res-label">Energia</span>
+            <span class="res-value" id="energyVal">0</span>
+            <span class="res-rate" id="energyRate">+0.0 /s</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sekcja Klikania / Działań ręcznych -->
+      <section class="actions-panel">
+        <button id="btnDiscover" class="btn-action primary-pulse">
+          <span class="btn-icon">🔍</span>
+          <div class="btn-text">
+            <strong>Badaj Otoczenie</strong>
+            <small id="discoverYield">+1 RP</small>
+          </div>
+        </button>
+
+        <button id="btnGather" class="btn-action">
+          <span class="btn-icon">⛏️</span>
+          <div class="btn-text">
+            <strong>Zbieraj Surowce</strong>
+            <small id="gatherYield">+1 Materiały</small>
+          </div>
+        </button>
+      </section>
+
+      <!-- Sekcja Zakładek: Struktury / Świat i Dyplomacja -->
+      <div class="tab-controls">
+        <button class="tab-btn active" id="tabBtnGen">🏗️ Budowle</button>
+        <button class="tab-btn" id="tabBtnNations">🌍 Narody i Dyplomacja</button>
+      </div>
+
+      <!-- Widok 1: Struktury i Generatorzy -->
+      <section class="tab-content active" id="tabGenerators">
+        <div class="generators-list" id="generatorsList"></div>
+      </section>
+
+      <!-- Widok 2: Kraje i Stosunki / Bonusy -->
+      <section class="tab-content" id="tabNations">
+        <div class="nations-list" id="nationsList"></div>
+      </section>
+
+      <!-- Kontrolki gry / Zapis -->
+      <footer class="sidebar-footer">
+        <button id="btnReset" class="btn-secondary danger">Reset Postępu</button>
+        <button id="btnAudioToggle" class="btn-secondary">🔊 Dźwięki: Wł</button>
+      </footer>
+    </aside>
+
+    <!-- Główna zawartość: Przełącznik Widoków (MAPA ŚWIATA / DRZEWKO TECH) -->
+    <main class="main-content">
+      <!-- Pasek Przełącznika Widoków Głównych -->
+      <div class="view-switcher-bar">
+        <div class="view-modes">
+          <button class="view-mode-btn" id="btnViewTree">
+            <span class="btn-mode-icon">🔬</span> Drzewko Technologiczne
+          </button>
+          <button class="view-mode-btn active" id="btnViewMap">
+            <span class="btn-mode-icon">🗺️</span> Interaktywna Mapa Świata & Armia
+          </button>
+        </div>
+
+        <div class="mode-info-tag" id="modeInfoTag">
+          Kliknij dowolną prowincję, aby wydać rozkaz marszu lub ataku swojej armii!
+        </div>
+      </div>
+
+      <!-- 1. WIDOK: DRZEWKO TECHNOLOGICZNE -->
+      <div class="view-container" id="viewTreeContainer" style="display: none;">
+        <header class="tree-header">
+          <div class="filter-controls">
+            <span class="filter-label">Filtruj epoki:</span>
+            <button class="filter-chip active" data-era="all">Wszystkie</button>
+            <button class="filter-chip" data-era="stone">Epoka Kamienia</button>
+            <button class="filter-chip" data-era="bronze">Epoka Brązu i Żelaza</button>
+            <button class="filter-chip" data-era="steam">Rewolucja Przemysłowa</button>
+            <button class="filter-chip" data-era="atomic">Wiek Atomu i Krzemu</button>
+            <button class="filter-chip" data-era="future">Era Kosmiczna</button>
+          </div>
+
+          <div class="tree-controls">
+            <button id="btnCenterTree" class="ctrl-btn" title="Wyśrodkuj widok">🎯</button>
+            <button id="btnZoomIn" class="ctrl-btn" title="Przybliż">+</button>
+            <button id="btnZoomOut" class="ctrl-btn" title="Oddal">−</button>
+            <div class="progress-badge">
+              Odblokowano: <strong id="unlockedCount">0</strong> / <strong id="totalTechs">0</strong>
+            </div>
+          </div>
+        </header>
+
+        <div class="tree-viewport" id="treeViewport">
+          <div class="tree-canvas" id="treeCanvas">
+            <svg class="tree-connections" id="treeSvg"></svg>
+            <div class="tree-nodes" id="treeNodes"></div>
+          </div>
+          <div class="drag-hint">
+            <span>💡 Przeciągaj myszką, by przesuwać drzewo | Kółko myszy = Zoom</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. WIDOK: MAPA ŚWIATA Z ARMIĄ -->
+      <div class="view-container active" id="viewMapContainer">
+        <header class="map-header">
+          <div class="map-header-left">
+            <h3>Pole Działań Operacyjnych i Geopolityka</h3>
+            <span class="map-sub">Przemieszczaj pułki armii pomiędzy prowincjami, aby podbijać świat</span>
+          </div>
+          <div class="map-legend">
+            <div class="legend-item"><span class="legend-dot player"></span> Twoje Ziemie</div>
+            <div class="legend-item"><span class="legend-dot ally"></span> Sprzymierzeńcy</div>
+            <div class="legend-item"><span class="legend-dot rival"></span> Kraje Wrogie</div>
+            <div class="legend-item"><span class="legend-dot wild"></span> Ziemie Niczyje</div>
+            <div class="legend-item"><span class="legend-dot army-dot"></span> Pozycja Armii 🪖</div>
+          </div>
+        </header>
+
+        <div class="world-map-viewport" id="worldMapViewport">
+          <div class="world-map-canvas" id="worldMapCanvas">
+            <svg id="worldMapSvg" viewBox="0 0 1000 550" class="world-svg">
+              <defs>
+                <radialGradient id="oceanGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#0b172a" />
+                  <stop offset="100%" stop-color="#070c18" />
+                </radialGradient>
+                <filter id="glowEffect">
+                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <rect width="1000" height="550" fill="url(#oceanGlow)" class="ocean-bg" />
+              <!-- Siatka współrzędnych kartograficznych -->
+              <g class="map-grid-lines" opacity="0.15">
+                <line x1="0" y1="137.5" x2="1000" y2="137.5" stroke="#38bdf8" stroke-dasharray="4 4" />
+                <line x1="0" y1="275" x2="1000" y2="275" stroke="#38bdf8" />
+                <line x1="0" y1="412.5" x2="1000" y2="412.5" stroke="#38bdf8" stroke-dasharray="4 4" />
+                <line x1="250" y1="0" x2="250" y2="550" stroke="#38bdf8" stroke-dasharray="4 4" />
+                <line x1="500" y1="0" x2="500" y2="550" stroke="#38bdf8" />
+                <line x1="750" y1="0" x2="750" y2="550" stroke="#38bdf8" stroke-dasharray="4 4" />
+              </g>
+
+              <!-- Grupy prowincji generowane w JS -->
+              <g id="mapProvincesGroup"></g>
+              <!-- Linie ruchu / trasy armii -->
+              <g id="mapMarchLineGroup"></g>
+              <!-- Etykiety i Flagi -->
+              <g id="mapCapitalsGroup"></g>
+              <!-- Wizualna jednostka Armii Gracza i Garnizony -->
+              <g id="mapArmiesGroup"></g>
+            </svg>
+          </div>
+
+          <!-- Pływająca karta informacji o wybranej prowincji / Rozkazy wojskowe -->
+          <div class="province-card-float" id="provinceFloatCard" hidden>
+            <div class="pfc-header">
+              <span class="pfc-flag" id="pfcFlag">🏳️</span>
+              <div>
+                <h4 id="pfcName">Prowincja</h4>
+                <small id="pfcOwner">Władca: Brak</small>
+              </div>
+            </div>
+            <p class="pfc-desc" id="pfcDesc">Opis regionu...</p>
+            
+            <div class="garrison-box" id="pfcGarrisonBox">
+              <span>Wrogi Garnizon / Obrońcy:</span>
+              <strong id="pfcGarrisonCount" style="color:#ef4444;">1 500 Wojsk</strong>
+            </div>
+
+            <div class="pfc-perks" id="pfcPerks"></div>
+
+            <div class="pfc-action-box">
+              <button class="btn-action primary-pulse" id="btnMarchArmy">
+                🚩 Wyślij Armię do tej Prowincji
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal / Okno Szczegółów Technologii -->
+  <div class="modal-overlay" id="techModal" hidden>
+    <div class="modal-card">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div class="modal-header">
+        <div class="modal-icon" id="modalIcon">🔥</div>
+        <div>
+          <h2 id="modalTitle">Rozniecanie Ognia</h2>
+          <span class="modal-era" id="modalEra">Epoka Kamienia</span>
+        </div>
+      </div>
+      <p class="modal-desc" id="modalDesc">Podstawa wszelkiej cywilizacji.</p>
+      
+      <div class="modal-details">
+        <div class="detail-block">
+          <h4>Wymagania poprzednie:</h4>
+          <ul id="modalReqs">Brak</ul>
+        </div>
+        <div class="detail-block">
+          <h4>Bonusy po opracowaniu:</h4>
+          <ul id="modalEffects"></ul>
+        </div>
+        <div class="detail-block">
+          <h4>Koszt wynalezienia:</h4>
+          <div class="cost-tags" id="modalCosts"></div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnResearchModal" class="btn-action primary-pulse">
+          Zbadaj Technologię
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Wyboru Kraju -->
+  <div class="modal-overlay" id="countryModal" hidden>
+    <div class="modal-card modal-wide">
+      <button class="modal-close" id="countryModalClose">✕</button>
+      <div class="modal-header">
+        <div class="modal-icon">🌍</div>
+        <div>
+          <h2>Wybierz Swój Kraj</h2>
+          <p class="modal-era">Wybierz nację, którą będziesz dowodzić na mapie i w rozwoju technologicznym</p>
+        </div>
+      </div>
+      
+      <div class="country-selection-grid" id="countrySelectionGrid"></div>
+    </div>
+  </div>
+
+  <!-- Powiadomienia w grze -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

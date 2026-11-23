@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ewolucja Człowieka: Epoki & Kontynenty</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="game-container"></div>
+
+    <!-- HUD Główny -->
+    <div id="hud">
+        <!-- Górny pasek epoki i kontynentu -->
+        <div class="hud-top-bar">
+            <div class="hud-badge era-badge">
+                <span class="icon" id="era-icon">🗿</span>
+                <div>
+                    <div class="badge-label">AKTUALNA EPOKA</div>
+                    <div class="badge-val" id="era-name">Starożytność</div>
+                </div>
+            </div>
+
+            <div class="hud-badge continent-badge" id="continent-selector-btn" title="Kliknij lub [M], aby wybrać Kraj i Kontynent">
+                <span class="icon" id="country-flag">🇵🇱</span>
+                <div>
+                    <div class="badge-label">KRAJ & KONTYNENT (Zmień [M])</div>
+                    <div class="badge-val" id="country-name">Polska (Europa)</div>
+                </div>
+            </div>
+
+            <div class="hud-progress-block">
+                <div class="progress-info">
+                    <span>⚡ Postęp Ewolucji do następnej epoki</span>
+                    <span id="evo-percent">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div id="evo-bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="hud-badge tech-tree-badge" id="techtree-toggle-btn" title="Otwórz Drzewo Technologii [K]">
+                <span class="icon">🔬</span>
+                <div>
+                    <div class="badge-label">BADANIA & CRAFTING</div>
+                    <div class="badge-val">Drzewo Technologii [K]</div>
+                </div>
+            </div>
+
+            <div class="hud-badge build-badge" id="build-toggle-btn" title="Otwórz Menu Budowy Osady [B]">
+                <span class="icon">🛖</span>
+                <div>
+                    <div class="badge-label">BUDOWA OSADY</div>
+                    <div class="badge-val">Buduj [B]</div>
+                </div>
+            </div>
+
+            <div class="hud-badge save-badge" id="save-btn" title="Zapisz Grę">💾 Zapisz</div>
+            <div class="hud-badge load-badge" id="load-btn" title="Wczytaj Grę">📂 Wczytaj</div>
+            <div class="hud-badge sound-toggle" id="audio-toggle">🔊 Dźwięk</div>
+        </div>
+
+        <!-- Pasek Bossa Epoki (Gdy aktywny) -->
+        <div id="boss-hud-bar" class="boss-container hidden">
+            <div class="boss-title-row">
+                <span id="boss-name">👑 PRADAWNY MAMMUT MATRIARCHA</span>
+                <span id="boss-hp-text">100%</span>
+            </div>
+            <div class="boss-hp-track">
+                <div id="boss-hp-fill" style="width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- Statystyki Gracza -->
+        <div class="hud-stats-left">
+            <div class="stat-row">
+                <span class="stat-name">❤️ Życie</span>
+                <div class="bar-shell"><div id="hp-bar" style="width: 100%;"></div></div>
+            </div>
+            <div class="stat-row">
+                <span class="stat-name">⚡ Energia</span>
+                <div class="bar-shell stamina"><div id="energy-bar" style="width: 100%;"></div></div>
+            </div>
+            <div class="resource-row">
+                <div class="res-item" title="Punkty Wiedzy / Rozwoju">💡 <span id="res-tech">0</span> Wiedzy</div>
+                <div class="res-item" title="Surowce Budulcowe">📦 <span id="res-mats">0</span> Surowców</div>
+                <div class="res-item" title="Pokonani przeciwnicy">⚔️ <span id="res-kills">0</span> Zwycięstw</div>
+            </div>
+        </div>
+
+        <!-- Cel Misji -->
+        <div class="hud-quest-box">
+            <div class="quest-title">📜 Cel Ewolucyjny:</div>
+            <div class="quest-desc" id="quest-text">Zbierz surowce wiedzy i pokonaj strażników, by dokonać skoku technologicznego!</div>
+            <div class="quest-hint">Sterowanie: <kbd>W</kbd><kbd>S</kbd><kbd>A</kbd><kbd>D</kbd> Ruch | Mysz / <kbd>←</kbd><kbd>→</kbd> Obrót | <kbd>LPM</kbd>/<kbd>F</kbd> Atak | <kbd>B</kbd> Buduj | <kbd>K</kbd> Nauka | <kbd>ESC</kbd> Pauza / Restart</div>
+        </div>
+
+        <!-- Celownik i Powiadomienia -->
+        <div id="crosshair">✦</div>
+        <div id="alert-banner"></div>
+        <div id="interact-prompt" class="hidden">Naciśnij <kbd>E</kbd> aby zbadać</div>
+
+        <!-- Mini-ekran szybkiego awansu epoki gdy gotowe -->
+        <div id="advance-era-btn" class="hidden">
+            🚀 DOKONAJ SKOKU CYWILIZACYJNEGO! (Naciśnij <kbd>T</kbd>)
+        </div>
+    </div>
+
+    <!-- Modal Drzewka Technologicznego & Wynalazków -->
+    <div id="tech-modal" class="modal hidden">
+        <div class="modal-content tech-modal-content">
+            <div class="modal-header">
+                <h2>🔬 DRZEWKO TECHNOLOGICZNE & CRAFTING NARZĘDZI</h2>
+                <button class="close-btn" id="close-tech-modal">✖</button>
+            </div>
+            <p class="modal-subtitle">Odblokowuj kluczowe technologie danej epoki (kamienne ostrza, krzemień, obróbka skóry, kowalstwo, automatyzacja). Każdy wynalazek daje trwałe bonusy do obrażeń, prędkości i punktów ewolucji!</p>
+            <div class="tech-era-tabs" id="tech-era-tabs"></div>
+            <div class="tech-grid" id="tech-grid">
+                <!-- Generowane przez JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Budowania Osady & Schronień -->
+    <div id="build-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🛖 SYSTEM BUDOWANIA OSADY & INFRASTRUKTURY</h2>
+                <button class="close-btn" id="close-build-modal">✖</button>
+            </div>
+            <p class="modal-subtitle">Wznoś konstrukcje charakterystyczne dla Twojej epoki w pobliżu gracza! Budowle dają stałe schronienie, leczenie i pasywny dochód surowców.</p>
+            <div class="continent-cards-grid" id="buildings-grid">
+                <!-- Generowane przez JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Mapy Świata / Państw i Kontynentów -->
+    <div id="continent-modal" class="modal hidden">
+        <div class="modal-content country-modal-content">
+            <div class="modal-header">
+                <h2>🌐 WYBIERZ KRAJ I REGION ŚWIATA DO ROZWOJU</h2>
+                <button class="close-btn" id="close-continent-modal">✖</button>
+            </div>
+            <p class="modal-subtitle">Każde państwo oferuje unikalną kulturę, flagę, architekturę oraz specyficzne bonusy cywilizacyjne!</p>
+            <div class="tech-era-tabs" id="country-continents-tabs"></div>
+            <div class="continent-cards-grid" id="continents-list">
+                <!-- Generowane dynamicznie przez JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Zwycięstwa / Nowej Ery -->
+    <div id="era-transition-modal" class="modal hidden">
+        <div class="modal-content celebration-content">
+            <h1 id="trans-title">🎉 NOWA ERA ODKRYTA!</h1>
+            <p id="trans-desc">Wkraczasz w kolejny etap rozwoju ludzkości...</p>
+            <div class="trans-reward" id="trans-bonus">Otrzymujesz nową broń i technologię!</div>
+            <button class="cta-btn" id="trans-continue-btn">RUSZAJ DO NOWEGO ŚWIATA ➔</button>
+        </div>
+    </div>
+
+    <!-- Modal Menu Pauzy / Wyjścia (ESC) -->
+    <div id="pause-modal" class="modal hidden">
+        <div class="modal-content pause-content">
+            <h2>⏸️ GRA WSTRZYMANA (PAUZA)</h2>
+            <p class="modal-subtitle">Naciśnij <kbd>ESC</kbd>, aby wznowić lub wybierz jedną z opcji:</p>
+            <div class="pause-actions-list">
+                <button class="cta-btn pause-btn" id="resume-btn">▶️ Wznów Grę (<kbd>ESC</kbd>)</button>
+                <button class="cta-btn pause-btn btn-danger" id="restart-game-btn">🔄 Zacznij od Nowa (Restart)</button>
+                <button class="cta-btn pause-btn btn-secondary" id="save-pause-btn">💾 Zapisz Stan Gry</button>
+                <button class="cta-btn pause-btn btn-secondary" id="load-pause-btn">📂 Wczytaj Ostatni Zapis</button>
+                <button class="cta-btn pause-btn btn-dark" id="main-menu-btn">🏠 Wyjdź do Ekranu Głównego</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ekran Początkowy / Menu -->
+    <div id="start-screen">
+        <div class="start-box">
+            <h1>CZŁOWIEK PRZEZ EPOKI</h1>
+            <div class="subtitle">Przemierzaj kontynenty świata i rozwijaj ludzkość od starożytności po rok 3000!</div>
+            <div class="features-list">
+                <div>🗿 <b>Starożytność</b> ➔ 🏰 <b>Średniowiecze</b> ➔ 🏭 <b>Wiek Pary i Przemysłu</b> ➔ 💻 <b>Współczesność</b> ➔ 🛸 <b>Super Przyszłość Cybernetyczna</b></div>
+                <div>🌍 <b>Kraje Świata & Kontynenty (<kbd>M</kbd>)</b>: Rozwijaj cywilizację w Polsce 🇵🇱, Grecji 🇬🇷, Włoszech/Rzymie 🇮🇹, Egipcie 🇪🇬, Japonii 🇯🇵, Chinach 🇨🇳, USA 🇺🇸, Australii 🇦🇺, Antarktydzie 🇦🇶 czy Bazie Orbitalnej 🚀!</div>
+                <div>🔬 <b>Drzewo Technologiczne (<kbd>K</kbd>)</b>: Wytwarzaj kamienne narzędzia, opanuj ogień, obróbkę krzemienia, wytop stali i technologie kwantowe!</div>
+                <div>🛖 <b>Budowanie Osady (<kbd>B</kbd>)</b>: Wznoś szałasy ze skór, ogniska lecznicze, totemy duchów, baszty i stacje satelitarne!</div>
+                <div>🦣 <b>Pradawna Fauna & Bossowie</b>: Poluj na mamuty i tygrysy szablozębne w prehistorii oraz walcz z potężnymi Władcami Epoki!</div>
+                <div>💾 <b>Zapis / Wczytanie Gry</b>: Przyciski na HUD lub skróty <kbd>Z</kbd> (Zapisz) oraz <kbd>X</kbd> (Wczytaj) | <kbd>ESC</kbd> Menu Pauzy & Restart.</div>
+            </div>
+            <button class="cta-btn start-cta" id="start-game-btn">ROZPOCZNIJ EWOLUCJĘ</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

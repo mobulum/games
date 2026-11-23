@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronicles of Magitech - Mega Expansion RPG</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Pasek Górny HUD -->
+    <div id="hud-top">
+      <!-- Aktywny Bohater, HP, Furia [R] i Poziom EXP [K] -->
+      <div id="hud-hero-info" class="hud-panel">
+        <div id="hud-hero-name">Valen (Wojownik)</div>
+        
+        <!-- Pasek HP -->
+        <div class="bar-container">
+          <div id="hud-hp-bar"></div>
+          <span id="hud-hp-text" class="bar-text">160 / 160</span>
+        </div>
+
+        <!-- Pasek Furii (Ultimate [R]) -->
+        <div class="bar-container">
+          <div id="hud-fury-bar"></div>
+          <span id="hud-fury-text" class="bar-text">FURIA: 0%</span>
+        </div>
+
+        <!-- Pasek EXP (Poziomy 1-20) -->
+        <div class="bar-container">
+          <div id="hud-exp-bar"></div>
+          <span id="hud-exp-text" class="bar-text">POZIOM: 1 (SP: 0)</span>
+        </div>
+
+        <div class="hero-stats-mini">
+          ⚔️ ATK: <span id="stat-atk">22</span> | 🛡️ DEF: <span id="stat-def">8</span> | 🏃 SPD: <span id="stat-spd">3.2</span><br>
+          ⚡ SKILL: <span id="stat-skill">Wir Miecza</span> (Spacja/PPM)<br>
+          💥 ULT: <span style="color:#ffea00">Klawisz [R]</span> | 🐎 DOSIĄDŹ: <span style="color:#38bdf8">[Z]</span>
+        </div>
+      </div>
+
+      <!-- Surowce & Aktualny Świat -->
+      <div id="hud-resources" class="hud-panel">
+        <div class="res-item">🪙 Złoto: <span id="hud-gold" style="color:#ffd54f">80</span></div>
+        <div class="res-item">🧪 Badania: <span id="hud-science" style="color:#00e5ff">50</span></div>
+        <div id="hud-world-badge">🌍 <span id="hud-current-world">Dolina Technomagów</span></div>
+      </div>
+
+      <!-- Przyciski Menu -->
+      <div id="hud-menu-buttons">
+        <button id="btn-shop" class="btn-retro" style="background:#ffb74d">🏪 SKLEP [M]</button>
+        <button id="btn-inventory" class="btn-retro" style="background:#81c784">🎒 EKWIPUNEK [I]</button>
+        <button id="btn-talents" class="btn-retro" style="background:#ba68c8">🌟 TALENTY [K]</button>
+        <button id="btn-mounts" class="btn-retro" style="background:#ffd54f">🐎 WIERZCHOWCE [Z]</button>
+        <button id="btn-gems" class="btn-retro" style="background:#f48fb1">💎 KAMIENIE</button>
+        <button id="btn-bounties" class="btn-retro" style="background:#b39ddb">📜 ZLECENIA</button>
+        <button id="btn-arena" class="btn-retro" style="background:#ef5350">🏟️ ARENA FAL [X]</button>
+        <button id="btn-raid" class="btn-retro" style="background:#ff7043">🛡️ NAJAZD</button>
+        <button id="btn-town" class="btn-retro" style="background:#4db6ac">🏛️ OSADA [B]</button>
+        <button id="btn-pets" class="btn-retro" style="background:#4dd0e1">🛸 CHOWANIEC [P]</button>
+        <button id="btn-techtree" class="btn-retro">🔬 BADAŃ [T]</button>
+        <button id="btn-save" class="btn-retro">💾 ZAPISZ</button>
+        <button id="btn-audio" class="btn-retro">🔊 DŹWIĘK</button>
+        <button id="btn-reset" class="btn-retro danger">🔄 RESET</button>
+      </div>
+    </div>
+
+    <!-- Pasek Zadań -->
+    <div id="hud-quests">
+      <div class="quest-header">📜 AKTUALNA MISJA [E]</div>
+      <div id="quest-tracker-content"></div>
+    </div>
+
+    <!-- Pasek Drużyny -->
+    <div id="hud-bottom">
+      <div id="hero-roster"></div>
+    </div>
+
+    <!-- Okno Dialogowe NPC -->
+    <div id="dialogue-box" class="hidden">
+      <div id="dialogue-speaker">NPC</div>
+      <div id="dialogue-text">Treść dialogu...</div>
+      <button id="dialogue-btn-ok" class="btn-retro" style="float: right;">DALEJ [E]</button>
+    </div>
+
+    <!-- MODAL: DRZEWKO TALENTÓW [K] -->
+    <div id="talents-modal" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">🌟 DRZEWKO TALENTÓW BOHATERA [K]</div>
+          <button id="btn-close-talents" class="btn-retro danger">✕ ZAMKNIJ [K]</button>
+        </div>
+        <div style="font-size: 8px; color: #b0bec5; margin-bottom: 12px;">
+          Dostępne Punkty Talentu: <strong style="color:#ffea00; font-size:10px;"><span id="talent-points-available">0</span> SP</strong>
+          (Zdobywasz +1 SP za każdy awans na poziom 1-20!)
+        </div>
+        <div id="talents-grid" class="talents-grid"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: WIERZCHOWCE I STAJNIA [Z] -->
+    <div id="mounts-modal" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">🐎 STAJNIA WIERZCHOWCÓW [Z]</div>
+          <button id="btn-close-mounts" class="btn-retro danger">✕ ZAMKNIJ [Z]</button>
+        </div>
+        <div style="font-size: 8px; color: #b0bec5; margin-bottom: 12px;">
+          Wsiądź na wierzchowca klawiszem <strong>[Z]</strong>! Bieg z pełną prędkością uruchamia szarżę taranującą wrogów!
+        </div>
+        <div id="mounts-grid" class="mounts-grid"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: KAMIENIE RUNICZNE I ZAKLINANIE -->
+    <div id="gems-modal" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">💎 KAMIENIE RUNICZNE & GNIAZDA (GEMS & SOCKETS)</div>
+          <button id="btn-close-gems" class="btn-retro danger">✕ ZAMKNIJ</button>
+        </div>
+        <div style="font-size: 8px; color: #b0bec5; margin-bottom: 12px;">
+          Osadzaj kamienie w gniazdach rynsztunku, aby nadać broni efekty ognia, mrozu, trucizny lub kradzieży życia!
+        </div>
+        <div id="gems-list" class="gems-list"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: TABLICA ZLECEŃ ŁOWCY (BOUNTIES) -->
+    <div id="bounties-modal" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">📜 TABLICA ZLECEŃ ŁOWCY GŁÓW (BOUNTIES)</div>
+          <button id="btn-close-bounties" class="btn-retro danger">✕ ZAMKNIJ</button>
+        </div>
+        <div style="font-size: 8px; color: #b0bec5; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
+          <span>Poluj na bestie i zgarniaj Żetony Łowcy! Posiadasz: 🎖️ <strong id="hunter-tokens-count" style="color:#ffea00">0</strong></span>
+          <button id="btn-buy-hunter-chest" class="btn-retro" style="background:#ffb74d">OTWÓRZ SKRZYNIĘ ŁOWCY (5 🎖️)</button>
+        </div>
+        <div id="bounties-list" class="bounties-list"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: SKLEP KUPCA BARNABY [M] -->
+    <div id="shop-modal" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">🏪 KRAM KUPCA BARNABY (ZBROJE, MIECZE, ŁUKI)</div>
+          <button id="btn-close-shop" class="btn-retro danger">✕ ZAMKNIJ [M]</button>
+        </div>
+        <div style="font-size: 8px; color: #b0bec5; margin-bottom: 12px;">
+          Kupuj najlepszy rynsztunek dla swojej drużyny!
+        </div>
+        <div id="shop-items-grid" class="shop-grid"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: EKWIPUNEK & KUŹNIA [I] -->
+    <div id="inventory-modal" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">🎒 EKWIPUNEK & ZBROJOWNIA KUŹNI</div>
+          <button id="btn-close-inventory" class="btn-retro danger">✕ ZAMKNIJ [I]</button>
+        </div>
+        <div class="inventory-container">
+          <div class="equipped-slots-panel">
+            <div style="font-size: 8px; color:#ffea00; margin-bottom: 6px;">WYPOSAŻONY SPRZĘT:</div>
+            <div>
+              <div style="font-size: 7px; color:#90a4ae; margin-bottom: 2px;">BROŃ:</div>
+              <div id="slot-weapon" class="slot-box"></div>
+            </div>
+            <div>
+              <div style="font-size: 7px; color:#90a4ae; margin-bottom: 2px;">PANCERZ:</div>
+              <div id="slot-armor" class="slot-box"></div>
+            </div>
+            <div>
+              <div style="font-size: 7px; color:#90a4ae; margin-bottom: 2px;">PIERŚCIEŃ:</div>
+              <div id="slot-ring" class="slot-box"></div>
+            </div>
+          </div>
+          <div class="backpack-panel">
+            <div style="font-size: 8px; color:#ffea00; margin-bottom: 6px;">PLECAK (KLIKNIJ ZAŁÓŻ LUB SPRZEDAJ):</div>
+            <div id="inventory-backpack-grid" class="backpack-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: ROZBUDOWA OSADY [B] -->
+    <div id="town-modal" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">🏛️ ROZBUDOWA OSADY W DOLINIE</div>
+          <button id="btn-close-town" class="btn-retro danger">✕ ZAMKNIJ [B]</button>
+        </div>
+        <div style="font-size: 8px; color: #b0bec5; margin-bottom: 12px;">
+          Inwestuj złoto i badania w infrastrukturę wioski!
+        </div>
+        <div id="town-buildings-grid" class="town-grid"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: CHOWAŃCE [P] -->
+    <div id="pets-modal" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">🛸 CHOWAŃCE I TOWARZYSZE BOJOWI</div>
+          <button id="btn-close-pets" class="btn-retro danger">✕ ZAMKNIJ [P]</button>
+        </div>
+        <div id="pets-grid" class="pets-grid"></div>
+      </div>
+    </div>
+
+    <!-- MODAL: PORTAL ŚWIATÓW -->
+    <div id="portal-modal" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">🌀 RUNOWY PORTAL WYMIARÓW</div>
+          <button id="btn-close-portal" class="btn-retro danger">✕ ZAMKNIJ</button>
+        </div>
+        <div class="portals-grid">
+          <div class="portal-card">
+            <div class="portal-title" style="color:#4caf50">1. Dolina Technomagów (Hub & Osada)</div>
+            <div class="portal-desc">Początkowa osada, kramy i rzeka wędkarstwa.</div>
+            <button class="btn-retro portal-btn-travel" data-world="hub">TELEPORTUJ DO WIOSKI</button>
+          </div>
+          <div class="portal-card">
+            <div class="portal-title" style="color:#00e5ff">2. Mroźne Pustkowia (Frostlands)</div>
+            <div class="portal-desc">Zamarznięty świat tundry i Tytan Mrozu.</div>
+            <button class="btn-retro portal-btn-travel" data-world="frostlands">TELEPORTUJ DO MROZU</button>
+          </div>
+          <div class="portal-card">
+            <div class="portal-title" style="color:#ba68c8">3. Podziemne Katakumby (Proceduralny Loch)</div>
+            <div class="portal-desc">Generowany losowo loch z pułapkami i skarbami.</div>
+            <button class="btn-retro portal-btn-travel" data-world="catacombs">TELEPORTUJ DO LOCHÓW</button>
+          </div>
+          <div class="portal-card">
+            <div class="portal-title" style="color:#ff5722">4. Płonąca Otchłań (Wymiar Lawy)</div>
+            <div class="portal-desc">Piekielna lawa i Władca Płomieni.</div>
+            <button class="btn-retro portal-btn-travel" data-world="fire_realm">TELEPORTUJ DO LAWY</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: DRZEWKO TECHNOLOGICZNE [T] -->
+    <div id="techtree-modal" class="modal-overlay hidden">
+      <div class="modal-window">
+        <div class="modal-header">
+          <div class="modal-title">🔬 DRZEWKO BADAŃ TECHNOLOGICZNYCH</div>
+          <button id="btn-close-techtree" class="btn-retro danger">✕ ZAMKNIJ [T]</button>
+        </div>
+        <div style="font-size: 8px; color: #b0bec5; margin-bottom: 12px;">
+          Dostępne Punkty Badań: 🧪 <span id="techtree-science-points" style="color:#00e5ff; font-weight:bold;">0</span>
+        </div>
+        <div id="techtree-grid" class="techtree-grid"></div>
+      </div>
+    </div>
+
+    <!-- Powiadomienie Modal -->
+    <div id="notification-modal" class="modal-overlay hidden">
+      <div class="modal-window" style="max-width: 520px; text-align: center;">
+        <div id="modal-title" class="modal-title" style="margin-bottom: 12px; color:#ffea00;">POWIADOMIENIE</div>
+        <div id="modal-content" style="font-size: 8px; line-height: 1.7; color: #cfd8dc; margin-bottom: 20px;"></div>
+        <button id="modal-btn-ok" class="btn-retro" style="display: inline-block;">RUSZAJ DO BOJU!</button>
+      </div>
+    </div>
+
+    <div id="game-toast"></div>
+  </div>
+
+  <!-- Skrypty Gry -->
+  <script src="js/config.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/talents.js"></script>
+  <script src="js/dungeon.js"></script>
+  <script src="js/mounts.js"></script>
+  <script src="js/gems.js"></script>
+  <script src="js/arena.js"></script>
+  <script src="js/bounties.js"></script>
+  <script src="js/environment.js"></script>
+  <script src="js/minigames.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/heroes.js"></script>
+  <script src="js/enemies.js"></script>
+  <script src="js/combat.js"></script>
+  <script src="js/inventory.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/town.js"></script>
+  <script src="js/pets.js"></script>
+  <script src="js/quests.js"></script>
+  <script src="js/techtree.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

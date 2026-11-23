@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wyprawa Bohatera: Minecraft World & Lochy 2D</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Metamorphous&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Ekran Tworzenia Postaci -->
+  <section id="char-creation" class="screen active">
+    <div class="glass-panel creation-card">
+      <h1 class="game-title">Świat Minecraft & Lochy</h1>
+      <p class="subtitle">Wybierz bohatera, ścinaj drzewa, kop surowce i buduj swój świat!</p>
+
+      <div class="input-group">
+        <label for="hero-name">Imię Bohatera:</label>
+        <input type="text" id="hero-name" placeholder="Wpisz imię..." value="Steve" maxlength="16">
+      </div>
+
+      <h2>Wybierz Klasę</h2>
+      <div class="class-selector">
+        <div class="class-option selected" data-class="warrior">
+          <div class="class-icon">⚔️</div>
+          <h3>Górnik / Wojownik</h3>
+          <p>Potężna siła fizyczna. Szybsze wydobywanie kamienia i mocne cięcia.</p>
+          <div class="class-stats">
+            <span>❤️ HP: 140</span>
+            <span>⛏️ Kopanie: +20%</span>
+            <span>💪 Siła: 14</span>
+          </div>
+        </div>
+
+        <div class="class-option" data-class="mage">
+          <div class="class-icon">🔮</div>
+          <h3>Alchemik / Mag</h3>
+          <p>Mistrz czarów i mikstur. Wyczarowuje kule ognia z dystansu.</p>
+          <div class="class-stats">
+            <span>❤️ HP: 90</span>
+            <span>⚡ MP: 120</span>
+            <span>🔮 Magia: 18</span>
+          </div>
+        </div>
+
+        <div class="class-option" data-class="rogue">
+          <div class="class-icon">🗡️</div>
+          <h3>Budowniczy / Łotrzyk</h3>
+          <p>Bardzo szybki w poruszaniu się po blokach i niszczeniu drzew.</p>
+          <div class="class-stats">
+            <span>❤️ HP: 105</span>
+            <span>🏃 Prędkość: Bardzo Szybka</span>
+            <span>🎯 Zręczność: 18</span>
+          </div>
+        </div>
+      </div>
+
+      <button id="btn-start-game" class="btn btn-primary btn-large">Rozpocznij Przygodę ➔</button>
+    </div>
+  </section>
+
+  <!-- Główny Interfejs Gry -->
+  <div id="game-main" class="screen">
+    <!-- Pasek Wrót / Top Header -->
+    <header class="top-bar">
+      <div class="player-profile">
+        <div class="avatar" id="player-avatar">⚔️</div>
+        <div class="player-info">
+          <h2 id="player-display-name">Steve</h2>
+          <span class="badge" id="player-class-badge">Górnik (Poziom <span id="player-level">1</span>)</span>
+        </div>
+      </div>
+
+      <!-- Przełącznik Trybów Gry -->
+      <div class="mode-tabs">
+        <button id="tab-mc-mode" class="mode-tab active">⛏️ Świat Minecraft (Sandbox & Crafting)</button>
+        <button id="tab-dungeon-mode" class="mode-tab">🏰 Lochy Portalowe 2D</button>
+      </div>
+
+      <div class="currency-and-actions">
+        <div class="gold-box">🪙 <span id="player-gold">50</span> Złota</div>
+        <button id="btn-open-hero" class="btn btn-secondary">📜 Bohater <span id="stat-points-badge" class="notif-badge hidden">!</span></button>
+        <button id="btn-open-shop" class="btn btn-secondary">🏪 Sklep</button>
+        <button id="btn-sound-toggle" class="btn btn-icon">🔊</button>
+      </div>
+    </header>
+
+    <!-- TRYB 1: ŚWIAT MINECRAFT SANDBOX -->
+    <main id="mc-view" class="game-view active">
+      <div class="mc-viewport-container">
+        <canvas id="mc-canvas" width="960" height="520"></canvas>
+
+        <!-- Overlay HUD Minecraft -->
+        <div class="mc-hud-top">
+          <div class="mc-stats">
+            <span>❤️ HP: <span id="mc-hp-text">140/140</span></span>
+            <span>🍗 Głód: <span id="mc-food-text">100%</span></span>
+            <span>☀️ Pora: <span id="mc-time-text">Dzień</span></span>
+          </div>
+
+          <div class="mc-top-actions">
+            <button id="btn-open-crafting" class="btn btn-primary btn-small">🔨 Crafting [C]</button>
+            <button id="btn-toggle-time" class="btn btn-secondary btn-small">🌙 Zmień Dzień/Noc</button>
+          </div>
+        </div>
+
+        <!-- Instrukcja Sterowania Minecraft -->
+        <div class="mc-hints">
+          <span>Ruch: <b>A/D</b> / <b>Strzałki</b></span>
+          <span>Skok: <b>W</b> / <b>Space</b></span>
+          <span>Ścinanie/Kopanie: <b>Lewy Przycisk Myszki</b></span>
+          <span>Stawianie Bloków: <b>Prawy Przycisk Myszki</b></span>
+          <span>Wybór przedmiotu: <b>1-9</b> lub Myszka</span>
+        </div>
+
+        <!-- Minecraft Hotbar Przedmiotów (Sloty 1-9) -->
+        <div class="mc-hotbar-container" id="mc-hotbar">
+          <!-- Sloty 1-9 wygenerowane w JS -->
+        </div>
+      </div>
+    </main>
+
+    <!-- TRYB 2: PORTALOWA MAPA LOCHÓW 2D -->
+    <main id="dungeon-view" class="game-view">
+      <div class="world-map-container">
+        <div class="map-header">
+          <h1>🌌 Portalowa Mapa Lochów Aethelgard</h1>
+          <p>Kliknij w odblokowany <strong>Portal Lochu</strong>, aby wejść do pojedynków z bossem!</p>
+        </div>
+
+        <div class="world-map-viewport" id="world-map">
+          <svg id="map-paths-svg" class="map-paths"></svg>
+          <div id="map-nodes-container" class="map-nodes"></div>
+          <div id="player-map-avatar" class="player-map-avatar">⚔️</div>
+          <div id="teleport-vortex" class="teleport-vortex hidden">🌀</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Fullscreen 2D Dungeon Action Arena Modal -->
+  <dialog id="dungeon-modal" class="game-dialog dungeon-dialog">
+    <div class="dungeon-arena-container" id="dungeon-container">
+      <canvas id="dungeon-canvas" width="900" height="500"></canvas>
+      
+      <div class="dungeon-hud">
+        <div class="dungeon-info">
+          <h2 id="dungeon-title">🔮 Krypta Goblinów - Poziom 1</h2>
+          <div class="dungeon-wave">Fala: <span id="dungeon-wave-text">1 / 3</span> | Wrogowie: <span id="dungeon-enemies-left">3</span></div>
+        </div>
+
+        <div class="dungeon-controls-hint">
+          <span>Ruch: <b>A/D</b></span>
+          <span>Skok: <b>W</b> / <b>Space</b></span>
+          <span>Atak: <b>J</b></span>
+          <span>Czar: <b>K</b></span>
+          <span>Mikstura: <b>L</b></span>
+        </div>
+
+        <button id="btn-leave-dungeon" class="btn btn-danger btn-small">Uciekaj z Lochu</button>
+      </div>
+
+      <div class="on-screen-controls">
+        <div class="dpad">
+          <button class="touch-btn" id="btn-touch-left">◄</button>
+          <button class="touch-btn" id="btn-touch-up">▲ (Skok)</button>
+          <button class="touch-btn" id="btn-touch-right">►</button>
+        </div>
+        <div class="action-pad">
+          <button class="touch-btn action-attack" id="btn-touch-attack">⚔️ Atak [J]</button>
+          <button class="touch-btn action-skill" id="btn-touch-skill">🔥 Czar [K]</button>
+          <button class="touch-btn action-heal" id="btn-touch-heal">🧪 Mikstura [L]</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal Craftingu Minecraft -->
+  <dialog id="crafting-modal" class="game-dialog">
+    <div class="modal-content crafting-content">
+      <div class="modal-header">
+        <h2>🔨 Stół Rzemieślniczy (Crafting)</h2>
+        <button class="btn-close" id="btn-close-crafting">✖</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="crafting-subtitle">Twórz deski, patyki, narzędzia oraz broń z zebranych surowców!</p>
+        <div class="crafting-grid" id="crafting-recipes-grid">
+          <!-- Wygenerowane receptury w JS -->
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal Statystyk i Rozwoju Bohatera -->
+  <dialog id="hero-modal" class="game-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>📜 Karta Bohatera</h2>
+        <button class="btn-close" id="btn-close-hero">✖</button>
+      </div>
+
+      <div class="modal-body hero-body">
+        <div class="hero-summary">
+          <div class="big-avatar" id="hero-modal-avatar">⚔️</div>
+          <h3 id="hero-modal-name">Steve</h3>
+          <p id="hero-modal-class">Górnik - Poziom 1</p>
+          <div class="stat-pts-avail">Dostępne punkty rozwoju: <strong id="hero-stat-points">0</strong></div>
+        </div>
+
+        <div class="stat-allocation">
+          <div class="stat-row">
+            <span>💪 Siła (Wydobywanie i obrażenia):</span>
+            <strong id="stat-str">14</strong>
+            <button class="btn btn-small btn-add-stat" data-stat="str">+</button>
+          </div>
+          <div class="stat-row">
+            <span>🎯 Zręczność (Prędkość chodzenia i skoku):</span>
+            <strong id="stat-dex">8</strong>
+            <button class="btn btn-small btn-add-stat" data-stat="dex">+</button>
+          </div>
+          <div class="stat-row">
+            <span>🔮 Inteligencja (Moc czarów):</span>
+            <strong id="stat-int">5</strong>
+            <button class="btn btn-small btn-add-stat" data-stat="int">+</button>
+          </div>
+          <div class="stat-row">
+            <span>❤️ Witalność (Maksymalne Zdrowie):</span>
+            <strong id="stat-vit">12</strong>
+            <button class="btn btn-small btn-add-stat" data-stat="vit">+</button>
+          </div>
+        </div>
+
+        <div class="equipped-gear">
+          <h4>Założony Ekwipunek:</h4>
+          <div class="gear-slots">
+            <div class="gear-slot">Broń: <span id="gear-weapon">Drewniany Kilof</span></div>
+            <div class="gear-slot">Pancerz: <span id="gear-armor">Skórzany Kaftan</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal Sklepu -->
+  <dialog id="shop-modal" class="game-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏪 Sklep Kupca Ealthera</h2>
+        <div class="gold-box">🪙 <span id="shop-gold-display">50</span> Złota</div>
+        <button class="btn-close" id="btn-close-shop">✖</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="shop-grid" id="shop-items-grid"></div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal Wyniku Lochu -->
+  <dialog id="result-modal" class="game-dialog">
+    <div class="modal-content result-content">
+      <h2 id="result-title">ZWYCIĘSTWO!</h2>
+      <div id="result-icon" class="result-icon">🏆</div>
+      <p id="result-message">Wielki Sukces!</p>
+      
+      <div id="result-rewards" class="rewards-box">
+        <div>⭐ +<span id="reward-xp">100</span> XP</div>
+        <div>🪙 +<span id="reward-gold">60</span> Złota</div>
+      </div>
+
+      <button id="btn-close-result" class="btn btn-primary">Powrót</button>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>

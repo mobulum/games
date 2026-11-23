@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PODBÓJ ŚWIATA - Grand Strategy 1756</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- D3.js for Real GeoJSON Projection -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+
+  <!-- Start Modal: Choose Map & Starting Nation -->
+  <div id="start-modal" class="modal active">
+    <div class="modal-content glass-card start-box">
+      <h1><i class="fa-solid fa-earth-americas"></i> PODBÓJ ŚWIATA</h1>
+      <p class="subtitle">Wybierz Scenariusz Historyczny i Teatr Działań Wojennych!</p>
+      
+      <!-- Map & Scenario Selector Tabs -->
+      <div class="map-mode-selector">
+        <button id="btn-mode-syw" class="btn btn-map-select active" style="background: rgba(245, 158, 11, 0.4); color: #fef08a;">
+          <i class="fa-solid fa-crown"></i> Wojna Siedmioletnia (1756 - Grand Strategy)
+        </button>
+        <button id="btn-mode-ww1" class="btn btn-map-select" style="background: rgba(75, 85, 99, 0.5);">
+          <i class="fa-solid fa-shield-halved"></i> I Wojna Światowa (1914)
+        </button>
+        <button id="btn-mode-ww2" class="btn btn-map-select" style="background: rgba(153, 27, 27, 0.5);">
+          <i class="fa-solid fa-person-military-rifle"></i> II Wojna Światowa (1944)
+        </button>
+        <button id="btn-mode-europe" class="btn btn-map-select">
+          <i class="fa-solid fa-earth-europe"></i> Europa (Prowincje)
+        </button>
+        <button id="btn-mode-world" class="btn btn-map-select">
+          <i class="fa-solid fa-globe"></i> Świat (Współczesna)
+        </button>
+      </div>
+
+      <div class="country-selection-grid" id="country-select-list">
+        <!-- Filled dynamically by JavaScript based on selected map scenario -->
+      </div>
+
+      <div class="start-action">
+        <button id="btn-confirm-start" class="btn btn-primary btn-large" disabled>
+          <i class="fa-solid fa-flag"></i> Rozpocznij Kampanię
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Game Container -->
+  <div id="game-container" class="hidden">
+    
+    <!-- Top HUD Status Bar -->
+    <header class="hud-header glass-panel">
+      <div class="hud-nation-info">
+        <div class="flag-icon" id="hud-flag">POL</div>
+        <div>
+          <h2 id="hud-nation-name">Polska</h2>
+          <span class="badge" id="hud-status-badge">Imperium</span>
+        </div>
+      </div>
+
+      <div class="hud-stats-group">
+        <div class="stat-item" title="Skarbiec Państwowy">
+          <i class="fa-solid fa-coins text-warning"></i>
+          <div>
+            <span class="stat-label">Skarbiec</span>
+            <span class="stat-value" id="hud-gold">1,000 $</span>
+          </div>
+        </div>
+
+        <div class="stat-item" title="Przychód co turę">
+          <i class="fa-solid fa-chart-line text-success"></i>
+          <div>
+            <span class="stat-label">Przychód</span>
+            <span class="stat-value" id="hud-income">+150 $/t</span>
+          </div>
+        </div>
+
+        <div class="stat-item" title="Punkty Nauki i Badań">
+          <i class="fa-solid fa-flask text-accent"></i>
+          <div>
+            <span class="stat-label">Nauka</span>
+            <span class="stat-value" id="hud-science">+25 pkt/t</span>
+          </div>
+        </div>
+
+        <div class="stat-item" title="Całkowita Siła Militarna">
+          <i class="fa-solid fa-jet-fighter text-danger"></i>
+          <div>
+            <span class="stat-label">Armia</span>
+            <span class="stat-value" id="hud-army">120k</span>
+          </div>
+        </div>
+
+        <div class="stat-item" title="Kontrola Świata">
+          <i class="fa-solid fa-globe text-info"></i>
+          <div>
+            <span class="stat-label">Postęp Podboju</span>
+            <span class="stat-value" id="hud-conquest-pct">0.6%</span>
+          </div>
+        </div>
+
+        <div class="stat-item" title="Data / Tura">
+          <i class="fa-solid fa-calendar-days"></i>
+          <div>
+            <span class="stat-label">Data</span>
+            <span class="stat-value" id="hud-date">Styczeń 2026</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hud-controls">
+        <button id="btn-open-tech" class="btn btn-accent" title="Drzewo Technologiczne">
+          <i class="fa-solid fa-microchip"></i> Technologie
+        </button>
+        <button id="btn-speed" class="btn btn-icon" title="Automatyczna Prędkość">
+          <i class="fa-solid fa-play"></i>
+        </button>
+        <button id="btn-next-turn" class="btn btn-accent btn-turn">
+          <i class="fa-solid fa-forward"></i> Następna Tura
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Viewport: Map & Control Sidebar -->
+    <main class="game-main">
+      
+      <!-- Interactive World Map Area -->
+      <section class="map-viewport" id="map-viewport">
+        <!-- Age of History Style Top Banner -->
+        <div class="aoh-map-banner">
+          <i class="fa-solid fa-hand-pointer"></i> Kliknij na mapę, aby wybrać Cywilizację
+        </div>
+
+        <div class="map-toolbar glass-panel">
+          <button id="btn-zoom-in" class="btn-tool" title="Przybliż"><i class="fa-solid fa-plus"></i></button>
+          <button id="btn-zoom-out" class="btn-tool" title="Oddal"><i class="fa-solid fa-minus"></i></button>
+          <button id="btn-zoom-reset" class="btn-tool" title="Zresetuj widok"><i class="fa-solid fa-arrows-to-dot"></i></button>
+          <button id="btn-sound-toggle" class="btn-tool" title="Dźwięk"><i class="fa-solid fa-volume-high"></i></button>
+        </div>
+
+        <div class="svg-container" id="svg-map-wrapper">
+          <svg id="world-map" viewBox="0 0 1000 520" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+            <rect width="1000" height="520" fill="#050814" />
+            <g id="map-group">
+              <!-- Rendered dynamically from selected GeoJSON via D3.js -->
+            </g>
+          </svg>
+        </div>
+
+        <!-- Tooltip -->
+        <div id="map-tooltip" class="map-tooltip hidden"></div>
+      </section>
+
+      <!-- Tactical Sidebar Panel -->
+      <aside class="tactical-sidebar glass-panel">
+        <div class="panel-header">
+          <h3 id="side-country-name">Wybierz Terytorium na Mapie</h3>
+          <span id="side-country-owner" class="badge">Niezależne</span>
+        </div>
+
+        <div class="country-details" id="country-details-box">
+          <div class="detail-card">
+            <i class="fa-solid fa-shield-halved text-danger"></i>
+            <div>
+              <span class="detail-title">Garnizon Militarny</span>
+              <strong id="side-army-val">--</strong>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <i class="fa-solid fa-sack-dollar text-warning"></i>
+            <div>
+              <span class="detail-title">Wartość Gospodarcza (PKB)</span>
+              <strong id="side-gdp-val">--</strong>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <i class="fa-solid fa-users text-info"></i>
+            <div>
+              <span class="detail-title">Populacja</span>
+              <strong id="side-pop-val">--</strong>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <i class="fa-solid fa-handshake text-success"></i>
+            <div>
+              <span class="detail-title">Relacje Polityczne</span>
+              <strong id="side-relation-val">--</strong>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Action Panel -->
+        <div class="action-buttons">
+          <button id="btn-action-attack" class="btn btn-danger btn-full" disabled>
+            <i class="fa-solid fa-crosshairs"></i> ROZPOCZNIJ INWAZJĘ
+          </button>
+
+          <button id="btn-action-nuke" class="btn btn-danger btn-full hidden" style="background: #991b1b;">
+            <i class="fa-solid fa-atom"></i> UŻYJ BRONI ATOMOWEJ
+          </button>
+
+          <button id="btn-action-recruit" class="btn btn-primary btn-full">
+            <i class="fa-solid fa-user-plus"></i> Rekrutuj Wojsko ($200)
+          </button>
+
+          <button id="btn-action-economy" class="btn btn-warning btn-full">
+            <i class="fa-solid fa-building"></i> Inwestuj w Przemysł ($300)
+          </button>
+
+          <button id="btn-action-research" class="btn btn-accent btn-full">
+            <i class="fa-solid fa-flask"></i> Buduj Uniwersytet ($250)
+          </button>
+
+          <button id="btn-action-pact" class="btn btn-secondary btn-full" disabled>
+            <i class="fa-solid fa-file-contract"></i> Pakt o Nieagresji
+          </button>
+        </div>
+
+        <!-- Global Leaderboard / Ranking -->
+        <div class="ranking-panel">
+          <h4><i class="fa-solid fa-trophy"></i> Największe Mocarstwa</h4>
+          <ul id="ranking-list" class="ranking-list">
+            <!-- Dynamic rank items -->
+          </ul>
+        </div>
+      </aside>
+
+    </main>
+
+    <!-- Bottom War Ticker Log -->
+    <footer class="news-ticker glass-panel">
+      <div class="ticker-title"><i class="fa-solid fa-bullhorn text-danger"></i> WIADOMOŚCI ZE ŚWIATA:</div>
+      <div class="ticker-content" id="news-log">
+        <span class="log-entry">Wybierz terytorium i rozpocznij działania wojenne!</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Tech Tree Modal -->
+  <div id="tech-modal" class="modal">
+    <div class="modal-content glass-card tech-box">
+      <div class="tech-header">
+        <h2><i class="fa-solid fa-microchip text-accent"></i> DRZEWO TECHNOLOGICZNE</h2>
+        <div class="tech-points">Punkty Nauki: <strong id="tech-points-val">0</strong> <i class="fa-solid fa-flask text-accent"></i></div>
+      </div>
+
+      <div class="tech-grid" id="tech-tree-container">
+        <!-- Generated dynamically in game.js -->
+      </div>
+
+      <div class="modal-actions" style="margin-top: 20px;">
+        <button id="btn-tech-close" class="btn btn-secondary btn-large">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Battle Modal -->
+  <div id="battle-modal" class="modal">
+    <div class="modal-content glass-card battle-box">
+      <h2><i class="fa-solid fa-explosion text-danger"></i> SYMULACJA INWAZJI</h2>
+      
+      <div class="battle-versus">
+        <div class="attacker-side">
+          <span class="badge badge-attacker">ATAKUJĄCY</span>
+          <h3 id="battle-attacker-name">Polska</h3>
+          <div class="battle-stat" id="battle-attacker-army">Armia: 150k</div>
+        </div>
+
+        <div class="vs-badge">VS</div>
+
+        <div class="defender-side">
+          <span class="badge badge-defender">OBROŃCA</span>
+          <h3 id="battle-defender-name">Niemcy</h3>
+          <div class="battle-stat" id="battle-defender-army">Armia: 120k</div>
+        </div>
+      </div>
+
+      <div class="battle-progress-container">
+        <div class="battle-bar attacker-bar" id="battle-bar-att" style="width: 50%;"></div>
+        <div class="battle-bar defender-bar" id="battle-bar-def" style="width: 50%;"></div>
+      </div>
+
+      <div id="battle-status-text" class="battle-status-text">Generowanie taktyki i starcie wojsk...</div>
+
+      <div class="modal-actions">
+        <button id="btn-battle-autowin" class="btn btn-danger btn-large">
+          <i class="fa-solid fa-gun"></i> Przeprowadź Szturm!
+        </button>
+        <button id="btn-battle-close" class="btn btn-secondary hidden">Zamknij</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over / Victory Modal -->
+  <div id="endgame-modal" class="modal">
+    <div class="modal-content glass-card endgame-box">
+      <h1 id="endgame-title">ZWYCIĘSTWO!</h1>
+      <p id="endgame-msg">Osiągnąłeś pełny podbój!</p>
+      <button onclick="location.reload()" class="btn btn-primary btn-large">Zagraj Ponownie</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="worldGeoData.js"></script>
+  <script src="europeGeoData.js"></script>
+  <script src="ww1ExactGeoData.js"></script>
+  <script src="ww2ExactGeoData.js"></script>
+  <script src="sywExactGeoData.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

@@ -79,6 +79,46 @@
       // AUTO-GENERATED: Do not edit manually. Updated by scripts/create-project.sh
       const games = [
         // GAMES_LIST_START
+        {
+          name: "Kółko i Krzyżyk",
+          url: "/kolko-i-krzyzyk/",
+          description: "Klasyczna gra w kółko i krzyżyk z animacjami i licznikiem punktów"
+        },
+        {
+          name: "Wyprawa Bohatera: Minecraft World & Lochy 2D",
+          url: "/minecraft-lochy/",
+          description: "RPG 2D z budowaniem, wydobywaniem surowców i eksploracją lochów"
+        },
+        {
+          name: "Podbój Świata - Grand Strategy 1756",
+          url: "/podboj-swiata/",
+          description: "Strategia globalna w realiach wojny siedmioletniej"
+        },
+        {
+          name: "Królestwo Cieni - Otwarta Mapa & Wioska 3D",
+          url: "/krolestwo-cieni/",
+          description: "Gra przygodowa z otwartym światem i osadą 3D"
+        },
+        {
+          name: "Ewolucja Człowieka: Epoki & Kontynenty",
+          url: "/ewolucja-czlowieka/",
+          description: "Symulacja rozwoju cywilizacji przez epoki i kontynenty"
+        },
+        {
+          name: "Pixel Dungeon Deckbuilder",
+          url: "/pixel-dungeon/",
+          description: "Roguelike karciany z budowaniem talii w lochach retro"
+        },
+        {
+          name: "Ewolucja Cywilizacji - Wojna, Armie & Tech Tree",
+          url: "/ewolucja-cywilizacji/",
+          description: "Rozbudowa państwa, drzewo technologii oraz bitwy armii"
+        },
+        {
+          name: "Chronicles of Magitech - Mega Expansion RPG",
+          url: "/chronicles-of-magitech/",
+          description: "Rozbudowane RPG łączące magię z technologią"
+        }
         // GAMES_LIST_END
       ];
       const grid = document.getElementById("games");
@@ -89,8 +129,7 @@
           const a = document.createElement("a");
           a.className = "game-card";
           a.href = g.url;
-          a.target = "_blank";
-          a.innerHTML = `<h2>${g.name}</h2><div class="url">${g.url}</div>`;
+          a.innerHTML = `<h2>${g.name}</h2><p style="color:#aaa;font-size:0.9rem;margin-bottom:0.75rem;">${g.description || ''}</p><div class="url">games.mobulum.com${g.url}</div>`;
           grid.appendChild(a);
         });
       }

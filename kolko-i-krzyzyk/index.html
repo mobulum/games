@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kółko i Krzyżyk</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-decorations">
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Kółko <span class="accent-x">i</span> Krzyżyk</h1>
+            <p class="subtitle">Wybierz tryb i zacznij rozgrywkę!</p>
+        </header>
+
+        <section class="controls-panel">
+            <div class="mode-selector">
+                <button id="mode-pvp" class="btn-mode active" data-mode="pvp">
+                    <span class="icon">👥</span> Gracz vs Gracz
+                </button>
+                <button id="mode-ai" class="btn-mode" data-mode="ai">
+                    <span class="icon">🤖</span> vs Komputer
+                </button>
+            </div>
+
+            <div id="ai-difficulty-container" class="difficulty-selector hidden">
+                <label for="ai-difficulty">Poziom trudności:</label>
+                <select id="ai-difficulty" class="select-input">
+                    <option value="easy">Łatwy (Początkujący)</option>
+                    <option value="hard" selected>Trudny (Niezwyciężony)</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="scoreboard">
+            <div class="score-card card-x">
+                <div class="player-label">Gracz X</div>
+                <div id="score-x" class="score-value">0</div>
+            </div>
+            <div class="score-card card-draw">
+                <div class="player-label">Remis</div>
+                <div id="score-draw" class="score-value">0</div>
+            </div>
+            <div class="score-card card-o">
+                <div id="label-o" class="player-label">Gracz O</div>
+                <div id="score-o" class="score-value">0</div>
+            </div>
+        </section>
+
+        <div class="status-panel">
+            <div id="status-text" class="status-text">Tura gracza <span class="player-turn mark-x">X</span></div>
+        </div>
+
+        <main class="game-board-wrapper">
+            <div id="board" class="board">
+                <button class="cell" data-index="0" aria-label="Pole 1"></button>
+                <button class="cell" data-index="1" aria-label="Pole 2"></button>
+                <button class="cell" data-index="2" aria-label="Pole 3"></button>
+                <button class="cell" data-index="3" aria-label="Pole 4"></button>
+                <button class="cell" data-index="4" aria-label="Pole 5"></button>
+                <button class="cell" data-index="5" aria-label="Pole 6"></button>
+                <button class="cell" data-index="6" aria-label="Pole 7"></button>
+                <button class="cell" data-index="7" aria-label="Pole 8"></button>
+                <button class="cell" data-index="8" aria-label="Pole 9"></button>
+            </div>
+            <canvas id="confetti-canvas"></canvas>
+        </main>
+
+        <footer class="action-buttons">
+            <button id="btn-restart" class="btn btn-primary">
+                <span class="icon">🔄</span> Nowa Gra
+            </button>
+            <button id="btn-reset-score" class="btn btn-secondary">
+                <span class="icon">🗑️</span> Reset Punktów
+            </button>
+            <button id="btn-sound" class="btn btn-icon" title="Dźwięk włączony/wyłączony" aria-label="Przełącz dźwięk">
+                <span id="sound-icon" class="icon">🔊</span>
+            </button>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
